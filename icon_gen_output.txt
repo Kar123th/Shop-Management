@@ -1,0 +1,14 @@
+  ════════════════════════════════════════════
+     FLUTTER LAUNCHER ICONS (v0.13.1)                               
+  ════════════════════════════════════════════
+  
+• Creating default icons Android
+• Overwriting the default Android launcher icon with a new icon
+
+WARNING: Icons with alpha channel are not allowed in the Apple App Store.
+Set "remove_alpha_ios: true" to remove it.
+
+• Overwriting default iOS launcher icon with new icon
+No platform provided
+
+✓ Successfully generated launcher icons

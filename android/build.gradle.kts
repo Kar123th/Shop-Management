@@ -20,14 +20,10 @@ subprojects {
 }
 
 subprojects {
-    afterEvaluate {
+    plugins.withId("com.android.library") {
         if (project.name == "blue_thermal_printer") {
-            try {
-                project.extensions.configure<com.android.build.gradle.LibraryExtension> {
-                    namespace = "id.kakzaki.blue_thermal_printer"
-                }
-            } catch (e: Exception) {
-                // Ignore if extension not found or type mismatch
+            project.extensions.configure<com.android.build.gradle.LibraryExtension> {
+                namespace = "id.kakzaki.blue_thermal_printer"
             }
         }
     }

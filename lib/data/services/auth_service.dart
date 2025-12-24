@@ -71,20 +71,21 @@ class AuthService {
     return prefs.getBool(_biometricEnabledKey) ?? false;
   }
 
-  // Set authentication status
+  bool _isAuthenticated = false;
+
+  // Set authentication status. 
+  // Note: This is now in-memory only, so restarting the app will require re-login.
   Future<void> setAuthenticated(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_isAuthenticatedKey, value);
+    _isAuthenticated = value;
   }
 
   // Check authentication status
   Future<bool> isAuthenticated() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_isAuthenticatedKey) ?? false;
+    return _isAuthenticated;
   }
 
   // Logout
   Future<void> logout() async {
-    await setAuthenticated(false);
+    _isAuthenticated = false;
   }
 }

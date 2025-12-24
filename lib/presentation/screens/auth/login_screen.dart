@@ -11,15 +11,31 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
   final _pinController = TextEditingController();
   bool _isLoading = false;
   String _errorMessage = '';
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
     _checkBiometric();
+    _shakeController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _shakeAnimation = Tween<double>(begin: 0.0, end: 24.0)
+        .chain(CurveTween(curve: Curves.elasticIn))
+        .animate(_shakeController);
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    _pinController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkBiometric() async {
@@ -49,6 +65,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() {
         _errorMessage = 'Please enter PIN';
       });
+      _shakeController.forward(from: 0.0);
       return;
     }
 
@@ -62,6 +79,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     if (!isPinSet) {
       // First time setup - save PIN
+      if (_pinController.text.length < 4) {
+         setState(() {
+          _errorMessage = 'PIN must be 4-6 digits';
+          _isLoading = false;
+        });
+        _shakeController.forward(from: 0.0);
+        return;
+      }
       await authService.savePin(_pinController.text);
       await authService.setAuthenticated(true);
       if (mounted) {
@@ -80,6 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _errorMessage = 'Invalid PIN';
           _isLoading = false;
         });
+        _shakeController.forward(from: 0.0);
       }
     }
   }
@@ -91,116 +117,106 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.secondary,
-            ],
-          ),
-        ),
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.white,
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+              child: AnimatedBuilder(
+                animation: _shakeController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(_shakeAnimation.value * (_shakeController.value <= 0.5 ? 1 : -1), 0), // Simple shake
+                    child: child,
+                  );
+                },
                 child: Padding(
                   padding: const EdgeInsets.all(32.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 120,
-                        height: 120,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: AssetImage('assets/images/logo.png'),
-                            fit: BoxFit.contain,
-                          ),
-                        ),
+                      Image.asset(
+                        'assets/images/logo.png',
+                        width: 150,
+                        height: 150,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Jaikrishna Traders',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const SizedBox(height: 8),
-                      isPinSetAsync.when(
-                        data: (isPinSet) => Text(
-                          isPinSet ? 'Welcome Back!' : 'Setup Your Account',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                color: Colors.grey[600],
+                        const SizedBox(height: 16),
+                        Text(
+                          'Jaikrishna Traders',
+                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
                         ),
-                        loading: () => const SizedBox(),
-                        error: (_, __) => const SizedBox(),
-                      ),
-                      const SizedBox(height: 32),
-                      TextField(
-                        controller: _pinController,
-                        obscureText: true,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        decoration: InputDecoration(
-                          labelText: isPinSetAsync.value == true ? 'Enter PIN' : 'Create PIN',
-                          hintText: 'Enter 4-6 digit PIN',
-                          prefixIcon: const Icon(Icons.lock),
-                          errorText: _errorMessage.isEmpty ? null : _errorMessage,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 8),
+                        isPinSetAsync.when(
+                          data: (isPinSet) => Text(
+                            isPinSet ? 'Welcome Back!' : 'Setup Your Account',
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  color: Colors.grey[600],
+                                ),
                           ),
+                          loading: () => const SizedBox(),
+                          error: (_, __) => const SizedBox(),
                         ),
-                        onSubmitted: (_) => _loginWithPin(),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _loginWithPin,
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
+                        const SizedBox(height: 32),
+                        TextField(
+                          controller: _pinController,
+                          obscureText: true,
+                          keyboardType: TextInputType.number,
+                          maxLength: 6,
+                          decoration: InputDecoration(
+                            labelText: isPinSetAsync.value == true ? 'Enter PIN' : 'Create PIN',
+                            hintText: 'Enter 4-6 digit PIN',
+                            prefixIcon: const Icon(Icons.lock),
+                            errorText: _errorMessage.isEmpty ? null : _errorMessage,
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(
-                                  isPinSetAsync.value == true ? 'Login' : 'Setup',
-                                  style: const TextStyle(fontSize: 16),
-                                ),
+                          onSubmitted: (_) => _loginWithPin(),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      isBiometricAvailableAsync.when(
-                        data: (isAvailable) {
-                          if (isAvailable && isPinSetAsync.value == true) {
-                            return TextButton.icon(
-                              onPressed: _authenticateWithBiometric,
-                              icon: const Icon(Icons.fingerprint),
-                              label: const Text('Use Biometric'),
-                            );
-                          }
-                          return const SizedBox();
-                        },
-                        loading: () => const SizedBox(),
-                        error: (_, __) => const SizedBox(),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _loginWithPin,
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : Text(
+                                    isPinSetAsync.value == true ? 'Login' : 'Setup',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        isBiometricAvailableAsync.when(
+                          data: (isAvailable) {
+                            if (isAvailable && isPinSetAsync.value == true) {
+                              return TextButton.icon(
+                                onPressed: _authenticateWithBiometric,
+                                icon: const Icon(Icons.fingerprint),
+                                label: const Text('Use Biometric'),
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                          loading: () => const SizedBox(),
+                          error: (_, __) => const SizedBox(),
+                        ),
+                      ],
+                    ),
                 ),
               ),
             ),
@@ -209,10 +225,5 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    super.dispose();
-  }
 }
+

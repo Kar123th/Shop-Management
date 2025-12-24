@@ -18,14 +18,23 @@ import 'package:shop_management_app/presentation/screens/parties/parties_list_sc
 import 'package:shop_management_app/presentation/screens/parties/add_party_screen.dart';
 import 'package:shop_management_app/presentation/screens/reports/reports_home_screen.dart';
 import 'package:shop_management_app/presentation/screens/settings/settings_screen.dart';
+import 'package:shop_management_app/presentation/screens/splash_screen.dart';
 
 final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: RouteConstants.login,
+
+    initialLocation: RouteConstants.splash,
     redirect: (context, state) async {
       final authService = ref.read(authServiceProvider);
       final isAuthenticated = await authService.isAuthenticated();
       final isOnLoginPage = state.matchedLocation == RouteConstants.login;
+
+      final isOnSplashPage = state.matchedLocation == RouteConstants.splash;
+
+      // Allow splash screen to pass through without redirect
+      if (isOnSplashPage) {
+        return null;
+      }
 
       // If not authenticated and not on login page, redirect to login
       if (!isAuthenticated && !isOnLoginPage) {
@@ -43,6 +52,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteConstants.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RouteConstants.splash,
+        builder: (context, state) => const SplashScreen(),
       ),
       GoRoute(
         path: RouteConstants.setup,

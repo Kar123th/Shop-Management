@@ -41,17 +41,22 @@ class SalesListScreen extends ConsumerWidget {
                         Text('${sale.items.length} items', style: TextStyle(color: Colors.grey[600])),
                       ],
                     ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('₹${sale.totalAmount.toStringAsFixed(2)}', 
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
+                        Text(
+                          '₹${sale.totalAmount.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         IconButton(
                           icon: const Icon(Icons.share, size: 20),
                           onPressed: () => InvoiceService.generateAndShareInvoice(sale),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ],
                     ),

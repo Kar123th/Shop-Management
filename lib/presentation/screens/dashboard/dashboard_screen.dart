@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shop_management_app/core/constants/route_constants.dart';
 import 'package:shop_management_app/presentation/providers/auth_provider.dart';
+import 'package:shop_management_app/presentation/providers/product_provider.dart';
+import 'package:shop_management_app/presentation/providers/sale_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -11,6 +13,8 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 2);
+
+    final todaySalesTotal = ref.watch(todaySalesTotalProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -25,7 +29,10 @@ class DashboardScreen extends ConsumerWidget {
       drawer: _buildDrawer(context, ref),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh data
+          // Sync sales and products in background
+          ref.read(saleRepositoryProvider).syncUnsyncedSales();
+          ref.read(productRepositoryProvider).getProducts(); // This triggers sync
+          ref.invalidate(salesProvider);
           await Future.delayed(const Duration(seconds: 1));
         },
         child: SingleChildScrollView(
@@ -46,7 +53,7 @@ class DashboardScreen extends ConsumerWidget {
                   Expanded(
                     child: _SummaryCard(
                       title: 'Sales',
-                      value: currencyFormat.format(0),
+                      value: currencyFormat.format(todaySalesTotal),
                       icon: Icons.trending_up,
                       color: Colors.green,
                       onTap: () => context.push(RouteConstants.sales),

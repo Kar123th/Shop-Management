@@ -1,0 +1,68 @@
+name: shop_management_app
+description: "A complete Shop Management mobile application."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # Backend & Database
+  supabase_flutter: ^2.0.0
+  sqflite: ^2.3.0
+
+  # State Management
+  flutter_riverpod: ^2.4.0
+  riverpod_annotation: ^2.3.0
+
+  # Navigation
+  go_router: ^13.0.0
+
+  # Authentication
+  local_auth: ^2.1.8
+  shared_preferences: ^2.2.2
+
+  # Utils
+  intl: ^0.19.0
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  share_plus: ^7.2.0
+  google_fonts: ^6.1.0
+  uuid: ^4.2.2
+  url_launcher: ^6.2.2
+
+  # PDF & Printing
+  pdf: ^3.10.0
+  printing: ^5.11.0
+  blue_thermal_printer: ^1.2.3
+
+  # Barcode
+  mobile_scanner: ^5.0.0
+  barcode_widget: ^2.0.0
+
+  # UI/Charts
+  fl_chart: ^0.66.0
+  
+  # Image
+  image_picker: ^1.0.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  riverpod_generator: ^2.3.0
+  build_runner: ^2.4.0
+  custom_lint: ^0.5.0
+  riverpod_lint: ^2.3.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
